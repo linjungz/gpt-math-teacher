@@ -88,25 +88,6 @@ with st.sidebar:
                         },
                     ]
 
-                    extra_payload={
-                        "enhancements": {
-                            "ocr": {
-                                "enabled": True
-                            },
-                            "grounding": {
-                                "enabled": True
-                            }
-                        },
-                        "dataSources": [
-                        {
-                            "type": "AzureComputerVision",
-                            "parameters": {
-                                "endpoint": "https://junlin-vision-westus.cognitiveservices.azure.com/",
-                                "key": "09b11537f1dd4fd88fb0e6ea2f5d20b6"
-                            }
-                        }],
-                    }
-
                     full_response = ""
                     message_placeholder = st.empty()
                     print(os.environ.get("AZURE_OPENAI_API_DEPLOYMENT"))
@@ -146,78 +127,7 @@ with st.sidebar:
                     
                     message_placeholder.markdown(full_response)
 
-            # headers = {
-            #     "Content-Type": "application/json",
-            #     "api-key": os.environ.get("AZURE_OPENAI_API_KEY"),
-            # }
-
-            # AZURE_OPENAI_API_ENDPOINT = os.environ.get("AZURE_OPENAI_API_ENDPOINT")
-            # AZURE_OPENAI_API_DEPLOYMENT = os.environ.get("AZURE_OPENAI_API_DEPLOYMENT")
-            # AZURE_OPENAI_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION")
-
-            # gpt4v_endpoint = f"{AZURE_OPENAI_API_ENDPOINT}openai/deployments/{AZURE_OPENAI_API_DEPLOYMENT}/chat/completions?api-version={AZURE_OPENAI_API_VERSION}"
-            #Send request
-            # try:
-            #     response = requests.post(
-            #         gpt4v_endpoint,
-            #         headers=headers,
-            #         json=payload,
-            #         stream=True
-            #     )
-            #     response.raise_for_status()
-            # except requests.exceptions.HTTPError as err:
-            #     print(f"Failed to make the request: {err}")
-            # print(response)
-
-
-            # Seems GPT-4V API currently doens't support streaming
-            
-            # for line in mock_result:
-            #     if line:
-            #         answer_j = json.loads(line)
-            #         print(answer_j)
-            #         with chat_container.container():
-            #             with st.chat_message("assistant"):
-            #                 st.markdown(answer_j["choices"][0]["message"]["content"])
-                    
-            #         st.session_state.messages.append({"role": "assistant", "content": answer_j["choices"][0]["message"]["content"]})
-
-
-
 if user_input := st.chat_input("What is up"):
     with st.chat_message("user"):
         st.markdown(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
-
-#     with st.chat_message("assistant"):
-#         history_to_keep = 10
-#         message_history = [
-#             {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
-#         ]
-#         messages = [system_prompt] + message_history[-history_to_keep:]
-#         print(messages)
-
-#         message_placeholder = st.empty()
-#         full_response = ""
-
-#         for response in openai.ChatCompletion.create(
-#             engine=os.environ.get("AZURE_OPENAI_API_DEPLOYMENT"),
-#             messages=messages,
-#             temperature=0,
-#             max_tokens=2000,
-#             top_p=0.95,
-#             frequency_penalty=0.0,
-#             presence_penalty=0.0,
-#             stop=None,
-#             stream=True
-#         ):
-#             if response.choices and 'delta' in response.choices[0] and 'content' in response.choices[0].delta:
-#                 full_response += (response.choices[0].delta.content or "")
-#                 message_placeholder.markdown(full_response + "▌")
-
-
-#         message_placeholder.markdown(full_response)
-
-#     st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-
