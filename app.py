@@ -17,8 +17,6 @@ aoai_client = AzureOpenAI(
     api_version=os.getenv("AZURE_OPENAI_API_VERSION")
 )
 
-print(os.getenv("AZURE_OPENAI_API_VERSION"))
-
 system_prompt = {"role":"system",
                  "content":
                  """
@@ -62,7 +60,13 @@ with st.sidebar:
             # Convert the image bytes to a base64 string
             img_base64 = base64.b64encode(img_bytes).decode('ascii')
 
-            img_message = {"role": "user", "content": img_bytes, "content_base64": img_base64}
+            # Get thunmbnail image
+            max_size= (600, 450)
+            image.thumbnail(max_size)
+            img_thumbnail_bytes = io.BytesIO()
+            image.save(img_thumbnail_bytes, format='JPEG')
+
+            img_message = {"role": "user", "content": img_thumbnail_bytes, "content_base64": img_base64}
             st.session_state.messages.append(img_message)
 
             with chat_container.container():
@@ -126,8 +130,3 @@ with st.sidebar:
                             message_placeholder.markdown(full_response + "▌")
                     
                     message_placeholder.markdown(full_response)
-
-if user_input := st.chat_input("What is up"):
-    with st.chat_message("user"):
-        st.markdown(user_input)
-    st.session_state.messages.append({"role": "user", "content": user_input})
