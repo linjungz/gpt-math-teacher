@@ -1,6 +1,5 @@
 import streamlit as st
 from dotenv import load_dotenv
-import openai
 import os
 import base64
 
@@ -11,11 +10,16 @@ from openai import AzureOpenAI
 
 load_dotenv()
 
+endpoint = os.getenv("AZURE_OPENAI_API_ENDPOINT")
+deployment = os.environ.get("AZURE_OPENAI_API_DEPLOYMENT")
 aoai_client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_API_ENDPOINT"),
+    base_url=f"{endpoint}/openai/deployments/{deployment}/extensions",
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
     api_version=os.getenv("AZURE_OPENAI_API_VERSION")
 )
+
+cv_endpoint = os.getenv("AZURE_CV_ENDPOINT")
+cv_key = os.getenv("AZURE_CV_KEY")
 
 system_prompt = {"role":"system",
                  "content":
@@ -94,28 +98,28 @@ with st.sidebar:
 
                     full_response = ""
                     message_placeholder = st.empty()
-                    print(os.environ.get("AZURE_OPENAI_API_DEPLOYMENT"))
+                    
                     response = aoai_client.chat.completions.create(
-                        model=os.environ.get("AZURE_OPENAI_API_DEPLOYMENT"),
-                        # extra_body={
-                        #     "enhancements": {
-                        #         "ocr": {
-                        #             "enabled": True
-                        #         },
-                        #         "grounding": {
-                        #             "enabled": True
-                        #         }
-                        #     },
-                        #     "dataSources": [
-                        #         {
-                        #             "type": "AzureComputerVision",
-                        #             "parameters": {
-                        #                 "endpoint": "https://junlin-vision-westus.cognitiveservices.azure.com/",
-                        #                 "key": "09b11537f1dd4fd88fb0e6ea2f5d20b6"
-                        #             }
-                        #         }],
-                        # },
+                        model=deployment,
                         messages=messages,
+                        extra_body={
+                            "enhancements": {
+                                "ocr": {
+                                    "enabled": True
+                                },
+                                "grounding": {
+                                    "enabled": True
+                                }
+                            },
+                            "dataSources": [
+                                {
+                                    "type": "AzureComputerVision",
+                                    "parameters": {
+                                        "endpoint": cv_endpoint,
+                                        "key": cv_key,
+                                    }
+                                }],
+                        },
                         temperature=0,
                         max_tokens=2000,
                         top_p=0.95,
@@ -125,8 +129,16 @@ with st.sidebar:
                     )
                     
                     for chunk in response:
-                        if chunk.choices[0].delta.content is not None:
-                            full_response += (chunk.choices[0].delta.content or "")
-                            message_placeholder.markdown(full_response + "▌")
-                    
+                        
+                        if hasattr(chunk.choices[0], 'messages') and len(chunk.choices[0].messages) > 0:
+                            message = chunk.choices[0].messages[0]
+                            if 'delta' in message and 'content' in message['delta']:
+                                content = message['delta']['content']
+
+                                if 'role'  not in message['delta']: 
+                                    full_response += content
+                                    message_placeholder.markdown(full_response + "▌")
+                                
                     message_placeholder.markdown(full_response)
+                            
+                    
